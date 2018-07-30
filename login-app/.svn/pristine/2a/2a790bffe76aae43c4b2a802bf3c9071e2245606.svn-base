@@ -1,0 +1,38 @@
+package w3s.servlet.login;
+
+import java.io.IOException;
+import java.sql.SQLException;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+
+@WebServlet("/deleteAMail")
+public class DeleteAMail extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+ 
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		System.out.println("DELETE Servlet");
+		String mailUniqueIDtoDelete = request.getParameter("mail_uniq_id");
+		System.out.println("mail id to delete : "+mailUniqueIDtoDelete);
+		
+		try {
+			boolean isMailDeleted = LoginUtils.deleteThisMail(mailUniqueIDtoDelete.trim());
+			if (isMailDeleted) {
+				System.out.println("mail deleted");
+				RequestDispatcher rd = request.getRequestDispatcher("AllMails");
+				rd.forward(request,response);
+			}
+		} catch (SQLException e) {
+			System.out.println("problem in deleting a mail");
+			e.printStackTrace();
+		}
+		
+		System.out.println("aftter");
+	}
+
+}

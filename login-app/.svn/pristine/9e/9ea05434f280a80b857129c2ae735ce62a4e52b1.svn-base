@@ -1,0 +1,66 @@
+package w3s.servlet.login;
+
+import java.io.IOException;
+import java.sql.SQLException;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang3.StringUtils;
+
+@WebServlet("/sendMail")
+public class MailServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+   
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse res)
+			throws ServletException, IOException {
+		
+		
+		String toMail = req.getParameter("tomail");
+		String mailContent = req.getParameter("mailContent");
+		String mailSub = req.getParameter("subject");
+		String fromMail = (String) req.getSession().getAttribute("sessionMailId");
+		
+		if(fromMail==null) {
+			res.sendRedirect("loginpage.jsp");
+		}
+		
+		if(StringUtils.isNotBlank(toMail) && StringUtils.isNotBlank(mailContent)) {			
+			//send logic
+			try {
+				boolean isThereOnDB = LoginUtils.validateMailId(toMail);
+				if(isThereOnDB) {
+					boolean isMailSent = LoginUtils.sendMessage(fromMail,toMail,mailContent,mailSub);
+					if (isMailSent) {
+						HttpSession session = req.getSession();
+						session.setAttribute("mailStatusMsg", "Mail sent to  "+toMail);
+						
+						session.setAttribute("frommail",fromMail);
+						res.sendRedirect("createMail.jsp");
+					}
+					
+				}else{
+					HttpSession session = req.getSession();
+					session.setAttribute("mailStatusMsg", "Sorry  we could not find anything with this :"+toMail);
+					res.sendRedirect("createMail.jsp");
+				}
+				
+			} catch (SQLException e) {
+				System.out.println("mailservlet  in catch");
+				e.printStackTrace();
+			}
+		}else {
+			req.getSession().setAttribute("mailStatusMsg", "pls provide mail and content");
+			res.sendRedirect("createMail.jsp");
+		}
+		
+	}
+    
+    
+
+}
